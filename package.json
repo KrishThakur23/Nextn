@@ -7,6 +7,7 @@
   "main": "main.js",
   "build": {
     "appId": "com.Agentrix.nextn",
+    "publish": null,
     "mac": {
       "category": "public.app-category.productivity"
     },
