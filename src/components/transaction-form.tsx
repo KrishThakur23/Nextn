@@ -77,14 +77,14 @@ export function TransactionForm({ customers, liveRates, onFormSubmit }: Transact
 
   useEffect(() => {
     if (selectedCustomer) {
-        form.setValue("customerId", selectedCustomer.id);
+        form.setValue("customerId", String(selectedCustomer.id));
     }
   }, [selectedCustomer, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const totalAmount = values.weight * values.rate;
 
-    addTransaction(values.customerId, {
+    addTransaction(Number(values.customerId), {
         category: values.type,
         details: {
             type: values.type,
@@ -152,7 +152,7 @@ export function TransactionForm({ customers, liveRates, onFormSubmit }: Transact
                                                         key={customer.id}
                                                         onSelect={() => {
                                                             setSelectedCustomer(customer);
-                                                            form.setValue("customerId", customer.id);
+                                                            form.setValue("customerId", String(customer.id));
                                                             setOpenCustomerSelector(false);
                                                         }}
                                                     >
@@ -258,7 +258,7 @@ export function TransactionForm({ customers, liveRates, onFormSubmit }: Transact
                         name="amountPaid"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Amount Paid (₹)</FormLabel>
+                            <FormLabel>Amount Paid</FormLabel>
                             <FormControl>
                                 <Input type="number" placeholder="0.00" {...field} />
                             </FormControl>

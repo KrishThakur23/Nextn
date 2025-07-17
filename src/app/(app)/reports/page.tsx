@@ -11,23 +11,24 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown, TrendingDown, Users, Receipt, List } from "lucide-react";
 
-// Function to calculate total business volume for a customer
 const calculateBusinessVolume = (customer: Customer): number => {
   return customer.transactions.reduce((total, tx) => {
     switch (tx.category) {
-        case 'Sale':
-        case 'Purchase':
-            return total + tx.details.totalAmount;
-        case 'MetalExchange':
-            return total + Math.abs(tx.details.valueOfDifference);
-        case 'Tunch':
-            return total + tx.details.tunchCharges;
-        default:
-            return total;
+      case 'Sale':
+      case 'Purchase':
+        // Only SalePurchaseDetails have totalAmount
+        return total + (typeof tx.details === 'object' && 'totalAmount' in tx.details ? tx.details.totalAmount : 0);
+      case 'MetalExchange':
+        // Only MetalExchangeDetails have valueOfDifference
+        return total + (typeof tx.details === 'object' && 'valueOfDifference' in tx.details ? Math.abs(tx.details.valueOfDifference) : 0);
+      case 'Tunch':
+        // Only TunchDetails have tunchCharges
+        return total + (typeof tx.details === 'object' && 'tunchCharges' in tx.details ? tx.details.tunchCharges : 0);
+      default:
+        return total;
     }
   }, 0);
 };
-
 // Market Dues Component
 const MarketDues = ({ customers }: { customers: Customer[] }) => {
   const customersWithDues = customers.filter(c => c.cashBalance < 0);
@@ -54,7 +55,7 @@ const MarketDues = ({ customers }: { customers: Customer[] }) => {
                   <TableCell>
                      <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={c.avatarUrl} alt={c.name} />
+                            <AvatarImage src={c.photo_path} alt={c.name} />
                             <AvatarFallback>{c.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -189,7 +190,7 @@ const PremiumCustomers = ({ customers }: { customers: Customer[] }) => {
                   <TableCell>
                      <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={c.avatarUrl} alt={c.name} />
+                            <AvatarImage src={c.photo_path} alt={c.name} />
                             <AvatarFallback>{c.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -242,20 +243,46 @@ const AllTransactions = ({ customers, shopTransactions }: { customers: Customer[
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {allTxs.map((tx: Transaction & { customerName: string }) => (
-                                <TableRow key={tx.id}>
-                                    <TableCell>{new Date(tx.timestamp).toLocaleString()}</TableCell>
-                                    <TableCell>{tx.customerName}</TableCell>
-                                    <TableCell><Badge variant="outline">{tx.category}</Badge></TableCell>
-                                    <TableCell className="text-right font-code">
-                                        {tx.cashChange ? `₹${new Intl.NumberFormat('en-IN').format(tx.cashChange)}` : ''}
-                                        {tx.goldChange ? `${tx.goldChange.toFixed(3)}g Au` : ''}
-                                        {tx.silverChange ? `${tx.silverChange.toFixed(3)}g Ag` : ''}
-                                        {/* For shop transactions which don't have these fields */}
-                                        {(tx.category === 'CashIn' || tx.category === 'CashOut') && !tx.cashChange && tx.details.amount ? `₹${new Intl.NumberFormat('en-IN').format(tx.details.amount)}` : ''}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {allTxs.map((tx, idx) => {
+                          // Shop transaction (CashIn/CashOut)
+                          if (
+                            (tx.category === 'CashIn' || tx.category === 'CashOut') &&
+                            // Shop tx: id is string, missing cashChange/goldChange, but has details.amount
+                            typeof tx.id === 'string'
+                          ) {
+                            return (
+                              <TableRow key={tx.id + '-' + idx}>
+                                <TableCell>{new Date(tx.timestamp).toLocaleString()}</TableCell>
+                                <TableCell>{tx.customerName}</TableCell>
+                                <TableCell><Badge variant="outline">{tx.category}</Badge></TableCell>
+                                <TableCell className="text-right font-code">
+                                  {'amount' in tx.details ? `₹${new Intl.NumberFormat('en-IN').format(tx.details.amount)}` : ''}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          // Customer transaction
+                          // Safe to assert Transaction & { customerName: string }
+                          if (typeof tx.id === 'number' &&
+                            'cashChange' in tx &&
+                            'goldChange' in tx &&
+                            'silverChange' in tx) {
+                          return (
+                            <TableRow key={tx.id + '-' + idx}>
+                              <TableCell>{new Date(tx.timestamp).toLocaleString()}</TableCell>
+                              <TableCell>{tx.customerName}</TableCell>
+                              <TableCell><Badge variant="outline">{tx.category}</Badge></TableCell>
+                              <TableCell className="text-right font-code">
+                                {tx.cashChange ? `₹${new Intl.NumberFormat('en-IN').format(tx.cashChange)}` : ''}
+                                {tx.goldChange ? `${tx.goldChange.toFixed(3)}g Au` : ''}
+                                {tx.silverChange ? `${tx.silverChange.toFixed(3)}g Ag` : ''}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+                        return null;
+                        })}
                         </TableBody>
                     </Table>
                  ) : (

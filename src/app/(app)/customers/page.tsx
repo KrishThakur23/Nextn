@@ -73,7 +73,7 @@ export default function CustomersPage() {
   };
   
   const handleDelete = (customerId: string) => {
-    deleteCustomer(customerId);
+    deleteCustomer(Number(customerId));
     toast({
         title: "Customer Deleted",
         description: "The customer has been removed successfully.",
@@ -134,7 +134,7 @@ export default function CustomersPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={customer.avatarUrl} alt={customer.name} />
+                            <AvatarImage src={customer.photo_path} alt={customer.name} />
                             <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -193,7 +193,7 @@ export default function CustomersPage() {
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDelete(customer.id)}>Delete</AlertDialogAction>
+                                        <AlertDialogAction onClick={() => handleDelete(String(customer.id))}>Delete</AlertDialogAction>
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>

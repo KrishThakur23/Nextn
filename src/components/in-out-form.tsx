@@ -67,7 +67,7 @@ export function InOutForm({ customers, liveRates, onFormSubmit }: InOutFormProps
 
   useEffect(() => {
     if (selectedCustomer) {
-        form.setValue("customerId", selectedCustomer.id);
+        form.setValue("customerId", String(selectedCustomer.id));
     }
   }, [selectedCustomer, form]);
 
@@ -117,7 +117,7 @@ export function InOutForm({ customers, liveRates, onFormSubmit }: InOutFormProps
         cashValue = values.amount * rateUsed;
     }
 
-    addTransaction(values.customerId, {
+    addTransaction(Number(values.customerId), {
         category: values.type,
         details: {
             type: values.type,
@@ -262,7 +262,7 @@ export function InOutForm({ customers, liveRates, onFormSubmit }: InOutFormProps
                                                           key={customer.id}
                                                           onSelect={() => {
                                                               setSelectedCustomer(customer);
-                                                              form.setValue("customerId", customer.id);
+                                                              form.setValue("customerId", String(customer.id));
                                                               setOpenCustomerSelector(false);
                                                           }}
                                                       >
@@ -286,7 +286,7 @@ export function InOutForm({ customers, liveRates, onFormSubmit }: InOutFormProps
                         name="amount"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>{isGold || isSilver ? 'Weight (g)' : 'Amount (₹)'}</FormLabel>
+                            <FormLabel>{isGold || isSilver ? 'Weight (g)' : 'Amount'}</FormLabel>
                             <FormControl>
                                 <Input type="number" step={isCash ? "0.01" : "0.001"} placeholder="0.00" {...field} />
                             </FormControl>

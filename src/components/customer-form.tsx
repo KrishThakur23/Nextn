@@ -118,14 +118,14 @@ export function CustomerForm({ customer, onFormSubmit }: CustomerFormProps) {
   function onSubmit(values: z.infer<typeof formSchema>) {
     
     const customerData = {
-        name: values.name,
-        phone: values.phone,
-        pan: values.pan,
-        notes: values.notes,
-        avatarUrl: typeof values.photo === 'string' ? values.photo : customer?.avatarUrl,
-        aadhaarFrontUrl: typeof values.aadhaarFront === 'string' ? values.aadhaarFront : customer?.aadhaarFrontUrl,
-        aadhaarBackUrl: typeof values.aadhaarBack === 'string' ? values.aadhaarBack : customer?.aadhaarBackUrl,
-    }
+      name: values.name,
+      phone: values.phone,
+      pan: values.pan,
+      notes: values.notes,
+      photo_path: typeof values.photo === 'string' ? values.photo : customer?.photo_path,
+      adhar_front_path: typeof values.aadhaarFront === 'string' ? values.aadhaarFront : customer?.adhar_front_path,
+      adhar_back_path: typeof values.aadhaarBack === 'string' ? values.aadhaarBack : customer?.adhar_back_path
+    };
 
     if (customer) {
         updateCustomer(customer.id, customerData);
@@ -157,17 +157,17 @@ export function CustomerForm({ customer, onFormSubmit }: CustomerFormProps) {
             <FormField
               control={form.control}
               name="photo"
-              render={({ field }) => <ImageUploadField field={field} label="Photo" defaultUrl={customer?.avatarUrl} />}
+              render={({ field }) => <ImageUploadField field={field} label="Photo" defaultUrl={customer?.photo_path} />}
             />
             <FormField
               control={form.control}
               name="aadhaarFront"
-              render={({ field }) => <ImageUploadField field={field} label="Aadhaar Front" defaultUrl={customer?.aadhaarFrontUrl} />}
+              render={({ field }) => <ImageUploadField field={field} label="Aadhaar Front" defaultUrl={customer?.adhar_front_path} />}
             />
             <FormField
               control={form.control}
               name="aadhaarBack"
-              render={({ field }) => <ImageUploadField field={field} label="Aadhaar Back" defaultUrl={customer?.aadhaarBackUrl} />}
+              render={({ field }) => <ImageUploadField field={field} label="Aadhaar Back" defaultUrl={customer?.adhar_back_path} />}
             />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

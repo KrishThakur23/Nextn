@@ -88,7 +88,7 @@ export function CustomerCard({ customer }: { customer: Customer }) {
       <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={customer.avatarUrl} alt={customer.name} />
+            <AvatarImage src={customer.photo_path} alt={customer.name} />
             <AvatarFallback className="text-2xl">
               {customer.name.charAt(0)}
             </AvatarFallback>

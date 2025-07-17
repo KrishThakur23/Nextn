@@ -1,16 +1,4 @@
-type Customer = {
-  id?: number;
-  name: string;
-  phone: string;
-  pan: string;
-  notes?: string;
-  cashBalance?: number;
-  goldBalance?: number;
-  silverBalance?: number;
-  photo_path?: string;
-  aadhar_front_path?: string;
-  aadhar_back_path?: string;
-};
+import { Customer } from "../types";
 
 // Transaction linked to a customer
 export type CustomerTransaction = {
@@ -29,7 +17,7 @@ export type CustomerTransaction = {
 
 // Shop-level transaction
 export type ShopTransaction = {
-  id: string;
+  id?: number;
   timestamp: string;
   category: string;
   details: any; // JSON object (type, amount, remarks, etc.)

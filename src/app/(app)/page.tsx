@@ -2,35 +2,9 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useMemo } from "react";
+import { Customer, CustomerTransaction } from "@/lib/types";
 
-// --- Electron Customers & Transactions Hook ---
-type Customer = {
-  id?: number;
-  name: string;
-  phone: string;
-  pan: string;
-  notes?: string;
-  cashBalance?: number;
-  goldBalance?: number;
-  silverBalance?: number;
-  photo_path?: string;
-  aadhar_front_path?: string;
-  aadhar_back_path?: string;
-};
 
-type CustomerTransaction = {
-  id?: number;
-  customer_id: number;
-  timestamp: string;
-  category: string;
-  details: any;
-  cashBalanceAfter?: number;
-  cashChange?: number;
-  goldBalanceAfter?: number;
-  goldChange?: number;
-  silverBalanceAfter?: number;
-  silverChange?: number;
-};
 
 function useElectronCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -54,25 +28,35 @@ function useElectronCustomers() {
 }
 
 function useCustomerTransactions(customerId: number | undefined) {
-  const [transactions, setTransactions] = useState<CustomerTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+
   const fetchTxns = async () => {
     if (!customerId) return;
     setLoading(true);
     if (window.api?.getCustomerTransactions) {
       const data = await window.api.getCustomerTransactions(customerId);
-      setTransactions(data);
+      // Convert each backend transaction to your frontend Transaction type
+      setTransactions(
+        data.map((t: any) => ({
+          id: t.id ?? 0,
+          timestamp: t.timestamp,
+          category: t.category,
+          details: t.details,
+          cashChange: t.cashChange ?? 0,
+          goldChange: t.goldChange ?? 0,
+          silverChange: t.silverChange ?? 0,
+          cashBalanceAfter: t.cashBalanceAfter ?? 0,
+          goldBalanceAfter: t.goldBalanceAfter ?? 0,
+          silverBalanceAfter: t.silverBalanceAfter ?? 0,
+        }))
+      );
     }
     setLoading(false);
   };
-  const addTransaction = async (txn: CustomerTransaction) => {
-    if (window.api?.addCustomerTransaction) {
-      await window.api.addCustomerTransaction(txn);
-      fetchTxns();
-    }
-  };
+
   useEffect(() => { fetchTxns(); }, [customerId]);
-  return { transactions, loading, addTransaction, fetchTxns };
+  return { transactions, loading, fetchTxns };
 }
 // --- END Electron Customers & Transactions Hook ---
 

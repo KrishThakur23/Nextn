@@ -65,7 +65,7 @@ export function TunchForm({ customers, onSaveTunch, onCreateExchange }: TunchFor
 
     useEffect(() => {
         if (selectedCustomer) {
-            form.setValue("customerId", selectedCustomer.id);
+            form.setValue("customerId", String(selectedCustomer.id));
         }
     }, [selectedCustomer, form]);
 
@@ -143,7 +143,7 @@ export function TunchForm({ customers, onSaveTunch, onCreateExchange }: TunchFor
                                                                 key={customer.id}
                                                                 onSelect={() => {
                                                                     setSelectedCustomer(customer);
-                                                                    form.setValue("customerId", customer.id);
+                                                                    form.setValue("customerId", String(customer.id));
                                                                     setOpenCustomerSelector(false);
                                                                 }}
                                                             >
@@ -199,7 +199,7 @@ export function TunchForm({ customers, onSaveTunch, onCreateExchange }: TunchFor
                                 name="tunchCharges"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tunch Charges (₹)</FormLabel>
+                                        <FormLabel>Tunch Charges</FormLabel>
                                         <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl>
                                     </FormItem>
                                 )}

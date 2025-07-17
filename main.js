@@ -7,6 +7,7 @@ let db;
 let SQL;
 let dbFilePath;
 
+
 function createWindow () {
   const win = new BrowserWindow({
     width: 800,
@@ -18,17 +19,28 @@ function createWindow () {
     }
   });
 
-  win.loadFile('index.html');
+  win.loadURL('http://localhost:9002');
+}
+
+function saveDb() {
+  const data = db.export();
+  fs.writeFileSync(dbFilePath, Buffer.from(data));
 }
 
 app.whenReady().then(async () => {
+  createWindow();
   SQL = await initSqlJs();
-  dbFilePath = path.join(app.getPath('userData'), 'app.sqlite');
-  let dbData = null;
+  const isPackaged = app.isPackaged;
+  const baseDir = isPackaged ? process.cwd() : __dirname;
+  dbFilePath = path.join(baseDir, 'app.sqlite');
+  console.log("Database path:", dbFilePath);
   if (fs.existsSync(dbFilePath)) {
-    dbData = new Uint8Array(fs.readFileSync(dbFilePath));
-  }
-  db = new SQL.Database(dbData);
+    const fileBuffer = fs.readFileSync(dbFilePath);
+    db = new SQL.Database(new Uint8Array(fileBuffer));
+    console.log("Loaded existing DB");
+  } else {
+    db = new SQL.Database();
+    console.log("Created new DB");
 
   // --- Create tables ---
   db.run(`CREATE TABLE IF NOT EXISTS customers (
@@ -69,10 +81,8 @@ app.whenReady().then(async () => {
     value TEXT
   )`);
 
-  function saveDb() {
-    const data = db.export();
-    fs.writeFileSync(dbFilePath, Buffer.from(data));
-  }
+  saveDb();
+}
 
   // --- IPC Handlers ---
   ipcMain.handle('get-customers', () => {
@@ -179,8 +189,6 @@ app.whenReady().then(async () => {
     saveDb();
     return true;
   });
-
-  createWindow();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

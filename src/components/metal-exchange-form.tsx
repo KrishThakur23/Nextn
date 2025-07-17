@@ -105,7 +105,7 @@ export function MetalExchangeForm({ customers, liveRates, onTransactionSave }: M
 
     useEffect(() => {
         if (selectedCustomer) {
-            form.setValue("customerId", selectedCustomer.id);
+            form.setValue("customerId", String(selectedCustomer.id));
         } else {
             form.setValue("customerId", "");
         }
@@ -194,7 +194,7 @@ export function MetalExchangeForm({ customers, liveRates, onTransactionSave }: M
                                                                         key={customer.id}
                                                                         onSelect={() => {
                                                                             setSelectedCustomer(customer);
-                                                                            form.setValue("customerId", customer.id);
+                                                                            form.setValue("customerId", String(customer.id));
                                                                             setOpenCustomerSelector(false);
                                                                         }}
                                                                     >
@@ -341,14 +341,17 @@ export function MetalExchangeForm({ customers, liveRates, onTransactionSave }: M
                                 <Separator/>
                                 <div className="space-y-2">
                                     <SummaryLine label="Metal Difference" value={`${calculations.metalDifference.toFixed(3)} gm`} />
-                                    <SummaryLine label="Value of Difference" value={`₹${new Intl.NumberFormat('en-IN').format(calculations.valueOfDifference)}`} />
+                                    <SummaryLine
+                                        label="Value of Difference"
+                                        value={new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(calculations.valueOfDifference)}
+                                    />
                                 </div>
                                 <FormField
                                     control={form.control}
                                     name="tonCharges"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Ton Charges (₹)</FormLabel>
+                                            <FormLabel>Ton Charges</FormLabel>
                                             <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl>
                                         </FormItem>
                                     )}
@@ -384,8 +387,8 @@ export function MetalExchangeForm({ customers, liveRates, onTransactionSave }: M
                                     render={({ field }) => (
                                             <FormItem>
                                             <FormLabel>Settlement Method</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
+                                            <Select onValueChange={field.onChange} defaultValue={String(field.value ?? "")}>
+                                            <FormControl>
                                                     <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>

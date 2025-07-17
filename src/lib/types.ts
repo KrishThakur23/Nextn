@@ -1,5 +1,5 @@
 export type Customer = {
-  id?: number;
+  id: number;
   name: string;
   phone: string;
   pan?: string;
@@ -13,6 +13,20 @@ export type Customer = {
   silverBalance: number; // in grams (Fine Weight)
 
   transactions: Transaction[];
+};
+
+export type CustomerTransaction = {
+  id: number;
+  customer_id: number;
+  timestamp: string;
+  category: string;
+  details: any;
+  cashBalanceAfter?: number;
+  cashChange?: number;
+  goldBalanceAfter?: number;
+  goldChange?: number;
+  silverBalanceAfter?: number;
+  silverChange?: number;
 };
 
 export type TransactionCategory = 'Tunch' | 'MetalExchange' | 'Sale' | 'Purchase' | 'GoldIn' | 'GoldOut' | 'CashIn' | 'CashOut' | 'SilverIn' | 'SilverOut';

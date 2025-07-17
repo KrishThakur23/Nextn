@@ -30,26 +30,35 @@ const initialRates: LiveRates = {
 };
 
 // Helper functions to interact with localStorage
-const saveDataToLocalStorage = (data: any) => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('gauri-khata-data', JSON.stringify(data));
-    }
+const saveDataToMeta = async (data: any) => {
+  console.log("Saving to meta:", data);
+  if (window.api?.setMeta) {
+      await window.api.setMeta('gauri-khata-data', JSON.stringify(data));
+  }
 }
 
-const loadDataFromLocalStorage = () => {
-    if (typeof window !== 'undefined') {
-        const savedData = localStorage.getItem('gauri-khata-data');
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            // Ensure rates are loaded, or use initial rates as a fallback
-            if (!parsedData.liveRates) {
-                parsedData.liveRates = initialRates;
-            }
-            return parsedData;
-        }
+const loadDataFromMeta = async () => {
+  console.log("Loading from meta...");
+  if (window.api?.getMeta) {
+    const savedData = await window.api.getMeta('gauri-khata-data');
+    console.log("Loaded from meta:", savedData);
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      // Ensure rates are loaded, or use initial rates as a fallback
+      if (!parsedData.liveRates) {
+        parsedData.liveRates = initialRates;
+      }
+      return parsedData;
     }
-    return { customers: [], shopTransactions: [], customerIdCounter: 0, transactionIdCounter: 0, liveRates: initialRates };
-}
+  }
+  return {
+    customers: [],
+    shopTransactions: [],
+    customerIdCounter: 0,
+    transactionIdCounter: 0,
+    liveRates: initialRates,
+  };
+};
 
 
 export function CustomerProvider({ children }: { children: ReactNode }) {
@@ -62,34 +71,57 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
 
   // Load initial data from localStorage
   useEffect(() => {
-    async function fetchCustomers() {
-      if (window.api?.getCustomers && window.api?.getCustomerTransactions) {
-        const data = await window.api.getCustomers();
-        const hydrated = await Promise.all(
-          data.map(async c => ({
-            id: c.id ?? 0,
-            name: c.name,
-            phone: c.phone,
-            pan: c.pan ?? "",
-            notes: c.notes ?? "",
-            photo_path: c.photo_path ?? "",
-            aadhar_front_path: c.aadhar_front_path ?? "",
-            aadhar_back_path: c.aadhar_back_path ?? "",
-            transactions: await window.api.getCustomerTransactions(Number(c.id)),
-            cashBalance: c.cashBalance ?? 0,
-            goldBalance: c.goldBalance ?? 0,
-            silverBalance: c.silverBalance ?? 0
-          }))
-        );
-        setCustomers(hydrated);
-      }
+  (async () => {
+    try {
+    console.log("About to call loadDataFromMeta");
+    const meta = await loadDataFromMeta();
+    console.log("Meta loaded:", meta);
+    setCustomers(meta.customers || []);
+    setShopTransactions(meta.shopTransactions || []);
+    setCustomerIdCounter(meta.customerIdCounter || 0);
+    setTransactionIdCounter(meta.transactionIdCounter || 0);
+    setLiveRates(meta.liveRates || initialRates);
+    // Optionally, if meta.customers is empty, fallback to IPC hydration:
+    if ((!meta.customers || meta.customers.length === 0) && window.api?.getCustomers && window.api?.getCustomerTransactions) {
+      const data = await window.api.getCustomers();
+      const hydrated = await Promise.all(
+        data.map(async c => ({
+          id: c.id ?? 0,
+          name: c.name,
+          phone: c.phone,
+          pan: c.pan ?? "",
+          notes: c.notes ?? "",
+          photo_path: c.photo_path ?? "",
+          adhar_front_path: c.adhar_front_path ?? "",
+          adhar_back_path: c.adhar_back_path ?? "",
+          transactions: (await window.api.getCustomerTransactions(Number(c.id))).map((t: any) => ({
+            id: t.id ?? 0,
+            timestamp: t.timestamp,
+            category: t.category,
+            details: t.details,
+            cashChange: t.cashChange ?? 0,
+            goldChange: t.goldChange ?? 0,
+            silverChange: t.silverChange ?? 0,
+            cashBalanceAfter: t.cashBalanceAfter ?? 0,
+            goldBalanceAfter: t.goldBalanceAfter ?? 0,
+            silverBalanceAfter: t.silverBalanceAfter ?? 0,
+          })),
+          cashBalance: c.cashBalance ?? 0,
+          goldBalance: c.goldBalance ?? 0,
+          silverBalance: c.silverBalance ?? 0
+        }))
+      );
+      setCustomers(hydrated);
     }
-    fetchCustomers();
-  }, []);
+   } catch (error) {
+      console.error("Error loading data from meta:", error);
+    }
+  })();
+}, []);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
-    saveDataToLocalStorage({ customers, shopTransactions, customerIdCounter, transactionIdCounter, liveRates });
+    saveDataToMeta({ customers, shopTransactions, customerIdCounter, transactionIdCounter, liveRates });
   }, [customers, shopTransactions, customerIdCounter, transactionIdCounter, liveRates]);
 
   const updateLiveRates = useCallback((metal: 'gold' | 'silver', newRates: { buy: number; sell: number }) => {
